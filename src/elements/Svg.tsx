@@ -182,7 +182,6 @@ export default class Svg extends Shape<SvgProps> {
         props.transform = gStyle.transform;
         gStyle.transform = undefined;
       }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       props.transform = extractTransformSvgView(props as any);
     }
 
