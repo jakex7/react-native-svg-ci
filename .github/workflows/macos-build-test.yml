@@ -1,30 +1,30 @@
-name: Example iOS check
+name: Example macOS check
 on:
   pull_request:
     paths:
-      - .github/workflows/ios-build-test.yml
+      - .github/workflows/macos-build-test.yml
       - RNSVG.podspec
       - apple/**
       - src/fabric/**
       - package.json
-      - apps/paper-example/package.json
-      - apps/paper-example/ios/**
-      - apps/fabric-example/package.json
-      - apps/fabric-example/ios/**
+      - apps/paper-macos-example/package.json
+      - apps/paper-macos-example/ios/**
+      - apps/fabric-macos-example/package.json
+      - apps/fabric-macos-example/ios/**
   push:
     branches:
       - main
-  workflow_dispatch:
 
 jobs:
   build:
+    if: github.repository == 'software-mansion/react-native-svg'
     runs-on: macos-14
     strategy:
       matrix:
-        working-directory: [paper-example, fabric-example]
+        working-directory: [paper-macos-example, fabric-macos-example]
       fail-fast: false
     concurrency:
-      group: ios-${{ matrix.working-directory }}-${{ github.ref }}
+      group: macos-${{ matrix.working-directory }}-${{ github.ref }}
       cancel-in-progress: true
     steps:
       - name: Checkout Git repository
@@ -59,23 +59,21 @@ jobs:
       - name: Get Pods cache
         uses: actions/cache@v4
         with:
-          path: apps/${{ matrix.working-directory }}/ios/Pods
-          key: ${{ runner.os }}-pods-${{ matrix.working-directory }}-${{ hashFiles(format('apps/{0}/ios/Podfile.lock', matrix.working-directory)) }}
+          path: apps/${{ matrix.working-directory }}/macos/Pods
+          key: ${{ runner.os }}-pods-${{ matrix.working-directory }}-${{ hashFiles(format('apps/{0}/macos/Podfile.lock', matrix.working-directory)) }}
           restore-keys: |
             ${{ runner.os }}-pods-${{ matrix.working-directory }}-
 
       - name: Install Pods
-        working-directory: apps/${{ matrix.working-directory }}/ios
+        working-directory: apps/${{ matrix.working-directory }}/macos
         run: bundle install && bundle exec pod install
 
       - name: Get build artifacts cache
         uses: actions/cache@v4
         with:
           path: ~/Library/Developer/Xcode/DerivedData
-          key: ${{ runner.os }}-ios-derived-data-${{ matrix.working-directory }}-${{ hashFiles(format('apps/{0}/ios/Podfile.lock', matrix.working-directory)) }}
-          restore-keys: |
-            ${{ runner.os }}-ios-derived-data-${{ matrix.working-directory }}-
+          key: ${{ runner.os }}-macos-derived-data-${{ matrix.working-directory }}-${{ hashFiles(format('apps/{0}/macos/Podfile.lock', matrix.working-directory)) }}
 
       - name: Build app
         working-directory: apps/${{ matrix.working-directory }}
-        run: npx react-native run-ios --simulator="iPhone 15 Pro" --mode Debug --verbose --no-packager
+        run: yarn macos
